@@ -18,16 +18,18 @@ import 'package:flutter_v2ex/pages/member/:memberId/replies.dart';
 import 'package:flutter_v2ex/pages/my/topics.dart';
 import 'package:flutter_v2ex/pages/my/follow.dart';
 import 'package:flutter_v2ex/pages/page_preview.dart';
-import 'package:flutter_v2ex/pages/page_search.dart';
+import 'package:flutter_v2ex/pages/search/index.dart';
 import 'package:flutter_v2ex/pages/page_hot.dart';
 import 'package:flutter_v2ex/pages/page_write.dart';
 import 'package:flutter_v2ex/pages/page_nodes_topic.dart';
 import 'package:flutter_v2ex/pages/page_history.dart';
 import 'package:flutter_v2ex/pages/page_agreement.dart';
 import 'package:flutter_v2ex/pages/page_history_hot.dart';
+import 'package:flutter_v2ex/pages/help/change_log/index.dart';
 
 import 'package:flutter_v2ex/pages/setting/page_font.dart';
 import 'package:flutter_v2ex/pages/setting/page_nodes_sort.dart';
+import 'package:flutter_v2ex/pages/setting/page_display_mode.dart';
 import 'package:flutter_v2ex/utils/storage.dart';
 
 class AppPages {
@@ -98,6 +100,10 @@ class AppPages {
     CustomGetPage('/historyHot', const HistoryHotPage()),
     // 网络
     CustomGetPage('/networkCheck', const NetworkCheckPage()),
+    // 更新日志
+    CustomGetPage('/changeLog', const ChangeLogPage()),
+    // 设置帧率
+    CustomGetPage('/setDisplayMode', const SetDiaplayMode()),
   ];
 }
 
@@ -120,7 +126,7 @@ class CustomGetPage extends GetPage {
           // iPad 模式下关闭 | context.width
           gestureWidth: sideslip ? (context) => context.width : null,
           showCupertinoParallax: false,
-          popGesture: true,
+          popGesture: false,
           transitionDuration: transitionDuration,
           fullscreenDialog: fullscreen != null && fullscreen,
         );

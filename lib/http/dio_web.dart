@@ -590,7 +590,6 @@ class DioRequestWeb {
       int once = GStorage().getOnce();
       response = await Request()
           .get("/mission/daily/redeem?once=$once", extra: {'ua': 'mob'});
-
       if (response.statusCode == 302) {
         SmartDialog.showToast('签到成功');
       } else if (response.statusCode == 200) {
@@ -604,6 +603,8 @@ class DioRequestWeb {
           if (tipsText.contains('你要查看的页面需要先登录')) {
             SmartDialog.showToast('登录状态失效');
             // eventBus.emit('login', 'fail');
+          }else{
+            return mainBox.querySelector('div.message')!.text;
           }
         }
 
@@ -873,59 +874,59 @@ class DioRequestWeb {
   }
 
   // 检测更新
-  static Future<Map> checkUpdate() async {
-    Map updata = {
-      'lastVersion': '',
-      'downloadHref': '',
-      'needUpdate': false,
-    };
-    Response response = await Request().get(
-        'https://api.github.com/repos/guozhigq/flutter_v2ex/releases/latest');
-    var versionDetail = VersionModel.fromJson(response.data);
-    print(versionDetail.tag_name);
-    // 版本号
-    var version = versionDetail.tag_name;
-    var updateLog = versionDetail.body;
-    List<String> updateLogList = updateLog.split('\r\n');
-    var needUpdate = Utils.needUpdate(Strings.currentVersion, version);
-    if (needUpdate) {
-      SmartDialog.show(
-        useSystem: true,
-        animationType: SmartAnimationType.centerFade_otherSlide,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('🎉 发现新版本 '),
-            content: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  version,
-                  style: const TextStyle(fontSize: 20),
-                ),
-                const SizedBox(height: 8),
-                for (var i in updateLogList) ...[Text(i)]
-              ],
-            ),
-            actions: [
-              TextButton(
-                  onPressed: () => SmartDialog.dismiss(),
-                  child: const Text('取消')),
-              TextButton(
-                  // TODO
-                  onPressed: () {
-                    SmartDialog.dismiss();
-                    Utils.openURL('${Strings.remoteUrl}/releases');
-                  },
-                  child: const Text('去更新'))
-            ],
-          );
-        },
-      );
-    } else {
-      updata[needUpdate] = true;
-    }
-    return updata;
-  }
+  // static Future<Map> checkUpdate() async {
+  //   Map updata = {
+  //     'lastVersion': '',
+  //     'downloadHref': '',
+  //     'needUpdate': false,
+  //   };
+  //   Response response = await Request().get(
+  //       'https://api.github.com/repos/guozhigq/flutter_v2ex/releases/latest');
+  //   var versionDetail = VersionModel.fromJson(response.data);
+  //   print(versionDetail.tag_name);
+  //   // 版本号
+  //   var version = versionDetail.tag_name;
+  //   var updateLog = versionDetail.body;
+  //   List<String> updateLogList = updateLog.split('\r\n');
+  //   var needUpdate = Utils.needUpdate(Strings.currentVersion, version);
+  //   if (needUpdate) {
+  //     SmartDialog.show(
+  //       useSystem: true,
+  //       animationType: SmartAnimationType.centerFade_otherSlide,
+  //       builder: (BuildContext context) {
+  //         return AlertDialog(
+  //           title: const Text('🎉 发现新版本 '),
+  //           content: Column(
+  //             mainAxisAlignment: MainAxisAlignment.start,
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Text(
+  //                 version,
+  //                 style: const TextStyle(fontSize: 20),
+  //               ),
+  //               const SizedBox(height: 8),
+  //               for (var i in updateLogList) ...[Text(i)]
+  //             ],
+  //           ),
+  //           actions: [
+  //             TextButton(
+  //                 onPressed: () => SmartDialog.dismiss(),
+  //                 child: const Text('取消')),
+  //             TextButton(
+  //                 // TODO
+  //                 onPressed: () {
+  //                   SmartDialog.dismiss();
+  //                   Utils.openURL('${Strings.remoteUrl}/releases');
+  //                 },
+  //                 child: const Text('去更新'))
+  //           ],
+  //         );
+  //       },
+  //     );
+  //   } else {
+  //     updata[needUpdate] = true;
+  //   }
+  //   return updata;
+  // }
 }

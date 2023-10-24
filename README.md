@@ -18,7 +18,7 @@
     <a target="_blank" href="https://github.com/guozhigq/flutter_v2ex/releases">去下载</a>
     <br/>
     <br/>
-    <img src="https://files.catbox.moe/w3pnbd.png" width="49%"></img>
+    <img src="https://raw.githubusercontent.com/guozhigq/flutter_v2ex/main/assets/preview/preview_1.png" width="49%"></img>
     <img src="https://files.catbox.moe/kpuks8.png" width="49%"></img>
     <img src="https://files.catbox.moe/dkf8qt.png" width="49%"></img>
     <img src="https://files.catbox.moe/xij4ov.png" width="49%"></img>
@@ -26,8 +26,9 @@
 <br/>
 
 
-## 功能
-[开发计划](https://github.com/users/guozhigq/projects/2)
+## 功能  
+
+[开发计划](https://github.com/users/guozhigq/projects/2)  / <a target="_blank" href="https://t.me/+lm_oOVmF0RJiODk1">加入讨论组</a>
 <br/>
 - [x] 夜间模式
 - [x] 动态主题
@@ -45,26 +46,26 @@
 - [x] Signin with Google
 - [x] 话题标记已读
 - [x] 消息跳转至楼层
-- [ ] 图片上传
+- [x] 图片上传
 - [ ] 数据缓存
-- [ ] 页面骨架屏
+- [x] 页面骨架屏
 - [ ] 适配Pad布局
-- [ ] markdown 格式发布主题
+- [x] markdown 格式发布主题
 
 <br/>
 
 ## 环境配置
 
 ```
-[✓] Flutter (Channel stable, 3.7.10, on macOS 12.6 21G115 darwin-arm64, locale
+[✓] Flutter (Channel stable, 3.10.6, on macOS 12.1 21C52 darwin-arm64, locale
     zh-Hans-CN)
-[✓] Android toolchain - develop for Android devices (Android SDK version 33.0.0)
-[✓] Xcode - develop for iOS and macOS (Xcode 14.2)
+[✓] Android toolchain - develop for Android devices (Android SDK version 33.0.2)
+[✓] Xcode - develop for iOS and macOS (Xcode 13.4)
 [✓] Chrome - develop for the web
-[✓] Android Studio (version 2022.1)
-[✓] VS Code (version 1.77.1)
-[✓] Connected device (4 available)
-[✓] HTTP Host Availability
+[✓] Android Studio (version 2022.2)
+[✓] VS Code (version 1.77.3)
+[✓] Connected device (3 available)
+[✓] Network resources
 ```
 
 ## 运行

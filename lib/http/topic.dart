@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:html/parser.dart';
 import 'package:html/dom.dart' as dom;
@@ -92,11 +93,8 @@ class TopicWebApi {
     detailModel.nodeName =
         document.querySelector('$headerQuery > a:nth-child(6)')!.text;
     //  at 9 小时 26 分钟前，1608 次点击
-    var pureStr = document
-        .querySelector('$headerQuery > small')!
-        .innerHtml
-        .split('a> at ')[1]
-        .replaceAll(RegExp(r"\s+"), "");
+    var pureStr =
+        document.querySelector('$headerQuery > small')!.text.split('at ')[1];
     List pureStrList = pureStr.split('·');
     detailModel.createdTime = pureStrList[0].replaceFirst(' +08:00', '');
     detailModel.visitorCount = pureStrList.length >= 2
@@ -146,19 +144,19 @@ class TopicWebApi {
       var contentDom =
           document.querySelector('$mainBoxQuery > div.cell > div')!;
       detailModel.content = contentDom.text;
-      List decodeRes = Utils.base64Decode(contentDom);
-      if (decodeRes.isNotEmpty) {
-        var decodeDom = '';
-        for (var i = 0; i < decodeRes.length; i++) {
-          decodeDom +=
-              '<a href="base64Wechat: ${decodeRes[i]}">${decodeRes[i]}</a>';
-          if (i != decodeRes.length - 1) {
-            decodeDom += '<span>、</span>';
-          }
-        }
-        contentDom.nodes.insert(contentDom.nodes.length,
-            parseFragment('<p>base64解码：$decodeDom</p>'));
-      }
+      // List decodeRes = Utils.base64Decode(contentDom);
+      // if (decodeRes.isNotEmpty) {
+      //   var decodeDom = '';
+      //   for (var i = 0; i < decodeRes.length; i++) {
+      //     decodeDom +=
+      //         '<a href="base64Wechat: ${decodeRes[i]}">${decodeRes[i]}</a>';
+      //     if (i != decodeRes.length - 1) {
+      //       decodeDom += '<span>、</span>';
+      //     }
+      //   }
+      //   contentDom.nodes.insert(contentDom.nodes.length,
+      //       parseFragment('<p>base64解码：$decodeDom</p>'));
+      // }
       detailModel.contentRendered = Utils.linkMatch(contentDom);
       if (contentDom.querySelector('img') != null) {
         var imgNodes = contentDom.querySelectorAll('img');
@@ -182,20 +180,20 @@ class TopicWebApi {
             .text
             .replaceFirst(' +08:00', ''); // 时间（去除+ 08:00）;
         var contentDom = node.querySelector('div.topic_content')!;
-        List decodeRes = Utils.base64Decode(contentDom);
-        if (decodeRes.isNotEmpty) {
-          var decodeDom = '';
-          for (var i = 0; i < decodeRes.length; i++) {
-            decodeDom +=
-                '<a href="base64Wechat: ${decodeRes[i]}">${decodeRes[i]}</a>';
-            if (i != decodeRes.length - 1) {
-              decodeDom += '<span>、</span>';
-            }
-          }
-          contentDom.nodes.insert(contentDom.nodes.length,
-              parseFragment('<p>base64解码：$decodeDom</p>'));
-        }
-        subtleItem.content = contentDom.innerHtml;
+        // List decodeRes = Utils.base64Decode(contentDom);
+        // if (decodeRes.isNotEmpty) {
+        //   var decodeDom = '';
+        //   for (var i = 0; i < decodeRes.length; i++) {
+        //     decodeDom +=
+        //         '<a href="base64Wechat: ${decodeRes[i]}">${decodeRes[i]}</a>';
+        //     if (i != decodeRes.length - 1) {
+        //       decodeDom += '<span>、</span>';
+        //     }
+        //   }
+        //   contentDom.nodes.insert(contentDom.nodes.length,
+        //       parseFragment('<p>base64解码：$decodeDom</p>'));
+        // }
+        subtleItem.content = Utils.linkMatch(contentDom);
         if (node.querySelector('div.topic_content')!.querySelector('img') !=
             null) {
           var subImgNodes =
@@ -274,7 +272,6 @@ class TopicWebApi {
       detailModel.totalPage = totalPageDom != null
           ? int.parse(totalPageDom.text.replaceAll(RegExp(r'\D'), ''))
           : 1;
-
       detailModel.replyCount = int.parse(replyBoxDom
           .querySelector('div.cell span')!
           .text
@@ -346,19 +343,19 @@ class TopicWebApi {
             .text);
         var contentDom = aNode.querySelector(
             '$replyTrQuery > td:nth-child(5) > div.reply_content')!;
-        List decodeRes = Utils.base64Decode(contentDom);
-        if (decodeRes.isNotEmpty) {
-          var decodeDom = '';
-          for (var i = 0; i < decodeRes.length; i++) {
-            decodeDom +=
-                '<a href="base64Wechat: ${decodeRes[i]}">${decodeRes[i]}</a>';
-            if (i != decodeRes.length - 1) {
-              decodeDom += '<span>、</span>';
-            }
-          }
-          contentDom.nodes.insert(contentDom.nodes.length,
-              parseFragment('<p>base64解码：$decodeDom</p>'));
-        }
+        // List decodeRes = Utils.base64Decode(contentDom);
+        // if (decodeRes.isNotEmpty) {
+        //   var decodeDom = '';
+        //   for (var i = 0; i < decodeRes.length; i++) {
+        //     decodeDom +=
+        //         '<a href="base64Wechat: ${decodeRes[i]}">${decodeRes[i]}</a>';
+        //     if (i != decodeRes.length - 1) {
+        //       decodeDom += '<span>、</span>';
+        //     }
+        //   }
+        //   contentDom.nodes.insert(contentDom.nodes.length,
+        //       parseFragment('<p>base64解码：$decodeDom</p>'));
+        // }
         replyItem.contentRendered = Utils.linkMatch(contentDom);
         replyItem.content = aNode
             .querySelector(

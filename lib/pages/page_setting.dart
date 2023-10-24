@@ -38,7 +38,7 @@ class _SettingPageState extends State<SettingPage> {
     if (Platform.isAndroid || Platform.isIOS || Platform.isFuchsia) {
       platform = 'mob';
     }
-    if(Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
       platform = 'desktop';
     }
   }
@@ -61,23 +61,20 @@ class _SettingPageState extends State<SettingPage> {
               },
               child: const Text('取消')),
           TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
+            onPressed: () async {
+              Navigator.pop(context);
 
-                /// 删除cookie目录
-                try {
-                  await Login.signOut();
-                  SmartDialog.showToast('已退出登录 ✅');
-                  // await Request().get('/');
-                  // if(context.mounted){
-                  //   Navigator.pop(context);
-                  // }
-                  Get.offAll(const HomePage());
-                } catch (err) {
-                  SmartDialog.showToast(err.toString());
-                }
-              },
-              child: const Text('确定'))
+              /// 删除cookie目录
+              try {
+                await Login.signOut();
+                SmartDialog.showToast('已退出登录 ✅');
+                Get.offAll(const HomePage());
+              } catch (err) {
+                SmartDialog.showToast(err.toString());
+              }
+            },
+            child: const Text('确定'),
+          )
         ],
       ),
     );
@@ -85,7 +82,6 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
   }
 
@@ -94,7 +90,10 @@ class _SettingPageState extends State<SettingPage> {
     TextStyle titleStyle = Theme.of(context).textTheme.titleLarge!;
     TextStyle subTitleStyle = Theme.of(context).textTheme.labelMedium!;
     Color iconStyle = Theme.of(context).colorScheme.onBackground;
-    TextStyle groupTitleStyle = Theme.of(context).textTheme.titleSmall!.copyWith(color: Theme.of(context).colorScheme.primary);
+    TextStyle groupTitleStyle = Theme.of(context)
+        .textTheme
+        .titleSmall!
+        .copyWith(color: Theme.of(context).colorScheme.primary);
     return Scaffold(
       appBar: AppBar(
         title: const Text('设置'),
@@ -202,79 +201,83 @@ class _SettingPageState extends State<SettingPage> {
                   }),
             ),
           ),
-          if(Breakpoints.small.isActive(context))
-          ListTile(
-            onTap: () {
-              setState(() {
-                noticeOn = !noticeOn;
-                GStorage().setNoticeOn(noticeOn);
-              });
-            },
-            // leading: Icon(Icons.notifications_none, color: iconStyle),
-            title: const Text('侧滑返回（重启生效）'),
-            subtitle: Text('页面任意位置右滑返回上一页', style: subTitleStyle),
-            trailing: Transform.scale(
-              scale: 0.8,
-              child: Switch(
-                  thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
-                          (Set<MaterialState> states) {
-                        if (states.isNotEmpty &&
-                            states.first == MaterialState.selected) {
-                          return const Icon(Icons.done);
-                        }
-                        return null; // All other states will use the default thumbIcon.
-                      }),
-                  value: sideslip,
-                  onChanged: (value) {
-                    setState(() {
-                      sideslip = !sideslip;
-                      GStorage().setSideslip(sideslip);
-                    });
-                  }),
+          if (Breakpoints.small.isActive(context))
+            ListTile(
+              onTap: () {
+                setState(() {
+                  noticeOn = !noticeOn;
+                  GStorage().setNoticeOn(noticeOn);
+                });
+              },
+              // leading: Icon(Icons.notifications_none, color: iconStyle),
+              title: const Text('侧滑返回（重启生效）'),
+              subtitle: Text('页面任意位置右滑返回上一页', style: subTitleStyle),
+              trailing: Transform.scale(
+                scale: 0.8,
+                child: Switch(
+                    thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
+                        (Set<MaterialState> states) {
+                      if (states.isNotEmpty &&
+                          states.first == MaterialState.selected) {
+                        return const Icon(Icons.done);
+                      }
+                      return null; // All other states will use the default thumbIcon.
+                    }),
+                    value: sideslip,
+                    onChanged: (value) {
+                      setState(() {
+                        sideslip = !sideslip;
+                        GStorage().setSideslip(sideslip);
+                      });
+                    }),
+              ),
             ),
-          ),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 25, 20, 5),
+            padding: const EdgeInsets.fromLTRB(16, 25, 20, 15),
             child: Text('显示设置', style: groupTitleStyle),
           ),
           ListTile(
+            dense: false,
             onTap: () => Get.toNamed('/setFont'),
-            // leading: Icon(Icons.font_download_outlined, color: iconStyle),
             title: const Text('字体设置'),
-            subtitle: Text('设置字体大小', style: subTitleStyle),
           ),
-          if(platform == 'mob')
-          ListTile(
-            onTap: () {
-              setState(() {
-                expendAppBar = !expendAppBar;
-                GStorage().setExpendAppBar(expendAppBar);
-              });
-            },
-            // leading: Icon(Icons.expand, color: iconStyle),
-            title: const Text('滑动时收起AppBar'),
-            subtitle: Text('在详情页收起顶部信息栏', style: subTitleStyle),
-            trailing: Transform.scale(
-              scale: 0.8,
-              child: Switch(
-                  thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
-                          (Set<MaterialState> states) {
-                        if (states.isNotEmpty &&
-                            states.first == MaterialState.selected) {
-                          return const Icon(Icons.done);
-                        }
-                        return null; // All other states will use the default thumbIcon.
-                      }),
-                  value: expendAppBar,
-                  onChanged: (value) {
-                    setState(() {
-                      expendAppBar = !expendAppBar;
-                      GStorage().setExpendAppBar(expendAppBar);
-                    });
-                  }),
+          if (Platform.isAndroid)
+            ListTile(
+              dense: false,
+              onTap: () => Get.toNamed('/setDisplayMode'),
+              title: const Text('屏幕帧率设置'),
             ),
-          ),
+          if (platform == 'mob')
+            ListTile(
+              onTap: () {
+                setState(() {
+                  expendAppBar = !expendAppBar;
+                  GStorage().setExpendAppBar(expendAppBar);
+                });
+              },
+              // leading: Icon(Icons.expand, color: iconStyle),
+              title: const Text('滑动时收起AppBar'),
+              subtitle: Text('在详情页收起顶部信息栏', style: subTitleStyle),
+              trailing: Transform.scale(
+                scale: 0.8,
+                child: Switch(
+                    thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
+                        (Set<MaterialState> states) {
+                      if (states.isNotEmpty &&
+                          states.first == MaterialState.selected) {
+                        return const Icon(Icons.done);
+                      }
+                      return null; // All other states will use the default thumbIcon.
+                    }),
+                    value: expendAppBar,
+                    onChanged: (value) {
+                      setState(() {
+                        expendAppBar = !expendAppBar;
+                        GStorage().setExpendAppBar(expendAppBar);
+                      });
+                    }),
+              ),
+            ),
           ListTile(
             onTap: () {
               setState(() {
@@ -289,13 +292,13 @@ class _SettingPageState extends State<SettingPage> {
               scale: 0.8,
               child: Switch(
                   thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
-                          (Set<MaterialState> states) {
-                        if (states.isNotEmpty &&
-                            states.first == MaterialState.selected) {
-                          return const Icon(Icons.done);
-                        }
-                        return null; // All other states will use the default thumbIcon.
-                      }),
+                      (Set<MaterialState> states) {
+                    if (states.isNotEmpty &&
+                        states.first == MaterialState.selected) {
+                      return const Icon(Icons.done);
+                    }
+                    return null; // All other states will use the default thumbIcon.
+                  }),
                   value: highlightOp,
                   onChanged: (value) {
                     setState(() {
@@ -321,7 +324,11 @@ class _SettingPageState extends State<SettingPage> {
             ListTile(
               onTap: onLogout,
               title: Center(
-              child: Text('退出登录', style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).colorScheme.error)),
+                child: Text('退出登录',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium!
+                        .copyWith(color: Theme.of(context).colorScheme.error)),
               ),
               // subtitle: Text('清除当前登录信息', style: subTitleStyle),
             ),

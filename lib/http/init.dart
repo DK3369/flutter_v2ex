@@ -16,17 +16,17 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 
 class Request {
   static final Request _instance = Request._internal();
-
+  static late CookieManager cookieManager;
+  static late final Dio dio;
   factory Request() => _instance;
 
-  Dio dio = Dio()
-    ..httpClientAdapter = Http2Adapter(
-      ConnectionManager(
-        idleTimeout: 10000,
-        // Ignore bad certificate
-        onClientCreate: (_, config) => config.onBadCertificate = (_) => true,
-      ),
-    );
+  // ..httpClientAdapter = Http2Adapter(
+  //   ConnectionManager(
+  //     idleTimeout: 10000,
+  //     // Ignore bad certificate
+  //     onClientCreate: (_, config) => config.onBadCertificate = (_) => true,
+  //   ),
+  // );
 
   dynamic _parseAndDecode(String response) {
     return jsonDecode(response);
@@ -43,7 +43,8 @@ class Request {
       ignoreExpires: true,
       storage: FileStorage(cookiePath),
     );
-    Request().dio.interceptors.add(CookieManager(cookieJar));
+    cookieManager = CookieManager(cookieJar);
+    dio.interceptors.add(cookieManager);
   }
 
   /*
@@ -82,24 +83,22 @@ class Request {
         responseHeader: false,
       ));
     // (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-    (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-        (HttpClient client) {
-      // config the http client
-      client.findProxy = (uri) {
-        // proxy all request to localhost:8888
-        // return 'PROXY 192.168.1.60:7890';
-        // return 'PROXY 172.16.32.186:7890';
-        // return 'PROXY localhost:7890';
-        // return 'PROXY 127.0.0.1:7890';
-        // 不设置代理 TODO 打包前关闭代理
-        return 'DIRECT';
-      };
-      client.badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
-      // return null;
-      // you can also create a HttpClient to dio
-      return client;
-    };
+    // (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+    //     (HttpClient client) {
+    //   // config the http client
+    //   client.findProxy = (uri) {
+    //     // proxy all request to localhost:8888
+    //     // return 'PROXY localhost:7890';
+    //     // return 'PROXY 127.0.0.1:7890';
+    //     // 不设置代理 TODO 打包前关闭代理
+    //     return 'DIRECT';
+    //   };
+    // client.badCertificateCallback =
+    //     (X509Certificate cert, String host, int port) => true;
+    // return null;
+    // you can also create a HttpClient to dio
+    //   return client;
+    // };
 
     dio.options.validateStatus = (status) {
       return status! >= 200 && status < 300 || status == 304 || status == 302;
@@ -110,6 +109,7 @@ class Request {
    * get请求
    */
   get(url, {data, cacheOptions, options, cancelToken, extra}) async {
+    // extra pc ok , mob error
     Response response;
     Options options;
     String ua = 'mob';
@@ -118,6 +118,7 @@ class Request {
       ua = extra!['ua'] ?? 'mob';
       resType = extra!['resType'] ?? ResponseType.json;
     }
+    // headerUa(pc) ResponseType.json;
     if (cacheOptions != null) {
       cacheOptions.headers = {'user-agent': headerUa(ua)};
       options = cacheOptions;

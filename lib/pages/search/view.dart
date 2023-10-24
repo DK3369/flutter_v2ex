@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_v2ex/service/i18n_keyword.dart';
+import 'package:flutter_v2ex/components/search/history.dart';
+import 'package:flutter_v2ex/pages/search/index.dart';
+import 'package:flutter_v2ex/service/search.dart';
 import 'package:get/get.dart';
-import 'package:flutter_v2ex/http/soV2ex.dart';
 import 'package:flutter_v2ex/components/common/pull_refresh.dart';
 import 'package:flutter_v2ex/components/common/skeleton_topic.dart';
-import 'package:flutter_v2ex/components/common/node_tag.dart';
-import 'package:flutter_v2ex/components/topic/html_render.dart';
-import 'package:flutter_v2ex/components/search/menu.dart';
 
+import 'widgets/appbar.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -17,27 +16,12 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  final SSearchController _searchController = Get.put(SSearchController());
   final ScrollController _controller = ScrollController();
-  SoV2exRes searchRes = SoV2exRes();
-  List<HitsList>? hitsList = [];
-  int pageCount = 20;
-  int _currentPage = 0;
-  int _totalPage = 1;
   bool showBackTopBtn = false;
-  bool _isLoading = true;
-  bool _isBlock = false;
-  String searchKeyWord = '';
-  TextEditingController controller = TextEditingController();
-
-  String sortType = 'created';
-  int orderType = 0;
-  int startTime = 0;
-  int endTime = 0;
-
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     _controller.addListener(
@@ -54,92 +38,10 @@ class _SearchPageState extends State<SearchPage> {
         }
       },
     );
-
-    search();
-  }
-
-  Future<SoV2exRes> search() async {
-    SoV2exRes res = SoV2exRes();
-    if (searchKeyWord.isEmpty || searchKeyWord == '') {
-      setState(() {
-        _isLoading = false;
-        _isBlock = true;
-      });
-      return res;
-    }
-    if(_currentPage == 0) {
-      setState(() {
-        _isLoading = true;
-        _isBlock = false;
-      });
-    }
-    res = await SoV2ex.onSearch(
-        searchKeyWord,
-        _currentPage * pageCount,
-        pageCount,
-        sort: sortType,
-        order: orderType,
-        gte: startTime,
-        lte: endTime
-    );
-    setState(() {
-      if (res.total > 0) {
-        if (_currentPage == 0) {
-          hitsList = res.hits;
-          _totalPage = (res.total / pageCount).ceil();
-        } else {
-          hitsList!.addAll(res.hits);
-        }
-      } else if(res.total == 0) {
-        // 无结果
-        hitsList = [];
-        _isBlock = true;
-      }
-      _currentPage += 1;
-      _isLoading = false;
-    });
-    return res;
-  }
-
-  // 排序方式
-  void setSort(String sortTypeVal) {
-    setState(() {
-      sortType = sortTypeVal;
-      _currentPage = 0;
-    });
-    search();
-  }
-
-  // 升降序
-  void setOrder(int orderTypeVal) {
-    setState(() {
-      orderType = orderTypeVal;
-      _currentPage = 0;
-    });
-    search();
-  }
-
-  // 起始时间
-  void setStartTime(int startTimeVal) {
-    setState(() {
-      startTime = startTimeVal;
-      _currentPage = 0;
-    });
-    search();
-  }
-
-  // 结束时间
-  void setEndTime(int endTimeVal) {
-    setState(() {
-      endTime = endTimeVal;
-      _currentPage = 0;
-    });
-    search();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _controller.dispose();
     super.dispose();
   }
@@ -147,72 +49,57 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 1,
-        title:TextField(
-                controller: controller,
-                autofocus: true,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: I18nKeyword.searchPower.tr,
-                  border: InputBorder.none,
-                  suffixIcon: controller.text.isNotEmpty
-                      ? IconButton(
-                      icon: Icon(
-                        Icons.clear,
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      onPressed: () {
-                        controller.clear();
-                        setState(() {
-                          hitsList = [];
-                        });
-                      })
-                      : null,
-                ),
-                onSubmitted: (String value) {
-                  setState(() {
-                    _currentPage = 0;
-                    searchKeyWord = value;
-                    _isLoading = true;
-                  });
-                  search();
-                },
-              ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50.0),
-          child: SearchMenu(
-              setSort: setSort,
-              setOrder: setOrder,
-              setStartTime: setStartTime,
-              setEndTime: setEndTime
-          ),
-        ),
-      ),
+      appBar: SAppBar(),
       body: Stack(
         children: [
           Scrollbar(
             controller: _controller,
             radius: const Radius.circular(10),
-            child: _isLoading
-                ? const TopicSkeleton()
-                : Container(
-                    // margin: const EdgeInsets.only(right: 12, left: 12),
-                    child: hitsList!.isNotEmpty
-                        ? PullRefresh(
-                            totalPage: _totalPage,
-                            currentPage: _currentPage,
-                            onChildLoad:
-                                _totalPage > 1 && _currentPage <= _totalPage
-                                    ? search
-                                    : null,
-                            child: wrap(),
-                          )
-                        : Center(
-                      child: Text('未找到内容', style: Theme.of(context).textTheme.titleMedium,),
-                    )
+            child: Obx(
+              () => _searchController.isLoading.value &&
+                      _searchController.currentPage.value == 0
+                  ? const TopicSkeleton()
+                  : Container(
+                      child: _searchController.hitsList!.isNotEmpty
+                          ? PullRefresh(
+                              totalPage: _searchController.totalPage.value,
+                              currentPage: _searchController.currentPage.value,
+                              onChildLoad: _searchController.totalPage > 1 &&
+                                      _searchController.currentPage <=
+                                          _searchController.totalPage.value
+                                  ? _searchController.search
+                                  : null,
+                              child: wrap(),
+                            )
+                          : _searchController.searchKeyWord.value.isNotEmpty
+                              ? Center(
+                                  child: Text(
+                                    '未找到内容',
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                )
+                              : FutureBuilder(
+                                  future: Search().queryList(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                            ConnectionState.done &&
+                                        snapshot.data!.isNotEmpty) {
+                                      return SearchHistory(
+                                          searchHisList: snapshot.data!,
+                                          onSelect: (text) =>
+                                              _searchController.onSelect(text),
+                                          onClear: () =>
+                                              _searchController.onClear());
+                                    } else {
+                                      return SizedBox();
+                                    }
+                                  },
+                                ),
+                    ),
             ),
           ),
+          // 返回顶部
           Positioned(
             right: 20,
             bottom: 20,
@@ -254,17 +141,17 @@ class _SearchPageState extends State<SearchPage> {
                 child: InkWell(
                   onTap: () {
                     // var arguments = <String, TabTopicItem>{"topic": widget.topic};
-                    Get.toNamed("/t/${hitsList![index].id}");
+                    Get.toNamed("/t/${_searchController.hitsList![index].id}");
                   },
                   borderRadius: BorderRadius.circular(10),
                   child: Ink(
                     padding: const EdgeInsets.fromLTRB(12, 15, 12, 12),
-                    child: content(hitsList![index]),
+                    child: content(_searchController.hitsList![index]),
                   ),
                 ),
               ),
             );
-          }, childCount: hitsList!.length),
+          }, childCount: _searchController.hitsList!.length),
         )
       ],
     );

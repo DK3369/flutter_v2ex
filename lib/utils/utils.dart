@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_v2ex/utils/string.dart';
+import 'package:flutter_v2ex/utils/upload.dart';
 
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -15,12 +16,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 
 class Utils {
 //   static IosDeviceInfo iosInfo;
 //   static AndroidDeviceInfo androidInfo;
-
-  final ChromeSafariBrowser browser = MyChromeSafariBrowser();
 
   // // 获取设备系统版本号
   static deviceInfo() async {
@@ -60,44 +60,23 @@ class Utils {
     if (!linkOpenType) {
       // 1. openWithSystemBrowser
       try {
-        await InAppBrowser.openWithSystemBrowser(url: WebUri(aUrl));
+        await InAppBrowser.openWithSystemBrowser(url: Uri.parse(aUrl));
       } catch (err) {
         SmartDialog.showToast(err.toString());
       }
     } else {
       // 2. openWithAppBrowser
       try {
-        await Utils().browser.open(
-          url: WebUri(aUrl),
-          settings: ChromeSafariBrowserSettings(
-              shareState: CustomTabsShareState.SHARE_STATE_OFF,
-              isSingleInstance: false,
-              isTrustedWebActivity: false,
-              keepAliveEnabled: true,
-              startAnimations: [
-                AndroidResource.anim(
-                    name: "slide_in_left", defPackage: "android"),
-                AndroidResource.anim(
-                    name: "slide_out_right", defPackage: "android")
-              ],
-              exitAnimations: [
-                AndroidResource.anim(
-                    name: "abc_slide_in_top",
-                    defPackage:
-                    "com.pichillilorenzo.flutter_inappwebviewexample"),
-                AndroidResource.anim(
-                    name: "abc_slide_out_top",
-                    defPackage:
-                    "com.pichillilorenzo.flutter_inappwebviewexample")
-              ],
-              dismissButtonStyle: DismissButtonStyle.CLOSE,
-              presentationStyle: ModalPresentationStyle.OVER_FULL_SCREEN),
-        );
+        await ChromeSafariBrowser().open(url: Uri.parse(aUrl));
       } catch (err) {
         // SmartDialog.showToast(err.toString());
         // https://github.com/guozhigq/flutter_v2ex/issues/49
         GStorage().setLinkOpenInApp(false);
-        await InAppBrowser.openWithSystemBrowser(url: WebUri(aUrl));
+        try {
+          await InAppBrowser.openWithSystemBrowser(url: Uri.parse(aUrl));
+        } catch (err) {
+          SmartDialog.showToast('openURL: $err');
+        }
       }
     }
   }
@@ -105,7 +84,7 @@ class Utils {
   String? encodeQueryParameters(Map<String, String> params) {
     return params.entries
         .map((e) =>
-    '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
         .join('&');
   }
 
@@ -170,9 +149,9 @@ class Utils {
   /// [func]: 要执行的方法
   /// [delay]: 要迟延的时长
   static Function debounce(
-      Function func, [
-        Duration delay = const Duration(milliseconds: 2000),
-      ]) {
+    Function func, [
+    Duration delay = const Duration(milliseconds: 2000),
+  ]) {
     Timer? timer;
     target() {
       if (timer!.isActive) {
@@ -207,9 +186,9 @@ class Utils {
       var expMatch = exp.allMatches(content).toList();
       for (var i in expMatch) {
         var value = i.group(0);
-        try{
+        try {
           decodeRes.addAll(base64Resolve(value!, decodeRes));
-        }catch(err) {
+        } catch (err) {
           // print(err);
         }
       }
@@ -225,25 +204,29 @@ class Utils {
     var blacklist = Strings().base64BlackList;
     RegExp exp = RegExp(r'[a-zA-Z\d=]{4,}');
     str = str.trim();
-    if (!blacklist.contains(str) && str.length % 4 == 0 || (str.endsWith('%3D') && (str.length-2) % 4 == 0)) {
-      try{
+    if (!blacklist.contains(str) && str.length % 4 == 0 ||
+        (str.endsWith('%3D') && (str.length - 2) % 4 == 0)) {
+      try {
         wechat = utf8.decode(base64.decode(str)).trim();
-      }catch(err) {
+      } catch (err) {
         print('❌ base64Resolve error: $err');
       }
       RegExp wechatRegExp = RegExp(r'^_|[a-zA-Z][a-zA-Z\d_-]{5,19}$');
       RegExp emailRegExp =
-      RegExp(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');
-      if (wechat != '' && (wechatRegExp.hasMatch(wechat) ||
-          RegExp(r'^\d+$').hasMatch(wechat) ||
-          emailRegExp.hasMatch(wechat))) {
+          RegExp(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');
+      if (wechat != '' &&
+          (wechatRegExp.hasMatch(wechat) ||
+              RegExp(r'^\d+$').hasMatch(wechat) ||
+              emailRegExp.hasMatch(wechat))) {
         decodeRes.add(wechat);
-      }else if(exp.allMatches(wechat).isNotEmpty && !wechatRegExp.hasMatch(wechat) && !RegExp(r'^\d+$').hasMatch(wechat)){
+      } else if (exp.allMatches(wechat).isNotEmpty &&
+          !wechatRegExp.hasMatch(wechat) &&
+          !RegExp(r'^\d+$').hasMatch(wechat)) {
         decodeRes.addAll(base64Resolve(wechat, decodeRes));
-      }else{
+      } else {
         print('解析中断： $wechat');
       }
-    }else{
+    } else {
       // print('err: 无效base64');
     }
     return decodeRes;
@@ -252,36 +235,49 @@ class Utils {
   // 替换innerHtml中的文本链接
   static linkMatch(contentDom) {
     var innerHtml = contentDom.innerHtml;
-    RegExp linkRegExp = RegExp(r"^/go|/t/(\d+)");
-    var linkRes = linkRegExp.firstMatch(innerHtml);
-    if (linkRes != null) {
-      var index = innerHtml.indexOf(linkRes.group(0));
-      var lastWord = innerHtml[index-1];
-      if(lastWord != 'm'){
-        var matchRes = linkRes.group(0);
-        innerHtml =
-            innerHtml.replaceAll(linkRegExp, "<a href='$matchRes'>$matchRes</a>");
-      }
-    }
+    var innerContent = contentDom.text;
 
-    // base64 替换
-    // RegExp base64RegExp = RegExp(r'[a-zA-Z\d=]{8,}');
-    // var base64Res = base64RegExp.allMatches(innerHtml);
-    // var wechat = '';
-    // for (var i in base64Res) {
-    //   if (!Strings().base64BlackList.contains(i.group(0)) && i.group(0)!.trim().length % 4 == 0) {
-    //     print('🔥：${i.group(0)}');
-    //     try{
-    //       wechat = utf8.decode(base64.decode(i.group(0)!));
-    //     }catch(e){
-    //       print(e);
-    //     }
-    //     if(wechat != ''){
-    //       innerHtml = innerHtml.replaceAll(base64RegExp,'${i.group(0)} (<a href="base64Wechat: $wechat">$wechat</a>)');
-    //     }
-    //     print(wechat);
+    // 暂时取消链接解析 https://www.v2ex.com/t/940105
+    // RegExp linkRegExp = RegExp(r"^/go|/t/(\d+)");
+    // var linkRes = linkRegExp.firstMatch(innerHtml);
+    // if (linkRes != null) {
+    //   var index = innerHtml.indexOf(linkRes.group(0));
+    //   var lastWord = innerHtml[index - 1];
+    //   if (lastWord != 'm') {
+    //     var matchRes = linkRes.group(0);
+    //     innerHtml = innerHtml.replaceAll(
+    //         linkRegExp, "<a href='$matchRes'>$matchRes</a>");
     //   }
     // }
+
+    // base64 替换
+    RegExp base64RegExp = RegExp(r'[a-zA-Z\d=]{8,}');
+    var base64Res = base64RegExp.allMatches(innerHtml);
+    var wechat = '';
+    for (var i in base64Res) {
+      if (!Strings().base64BlackList.contains(i.group(0)) &&
+          i.group(0)!.trim().length % 4 == 0) {
+        try {
+          wechat = utf8.decode(base64.decode(i.group(0)!));
+        } catch (e) {
+          print(e);
+        }
+        RegExp wechatRegExp = RegExp(r'^_|[a-zA-Z][a-zA-Z\d_-]{5,19}$');
+        RegExp emailRegExp =
+            RegExp(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');
+        if (wechat != '' &&
+            innerContent.contains(i.group(0)!) &&
+            (wechatRegExp.hasMatch(wechat) ||
+                RegExp(r'^\d+$').hasMatch(wechat) ||
+                emailRegExp.hasMatch(wechat))) {
+          try {
+            innerHtml = innerHtml.replaceAll(i.group(0),
+                '${i.group(0)} (<a href="base64Wechat: $wechat">$wechat</a>)');
+          } catch (e) {}
+        }
+        print(wechat);
+      }
+    }
 
     return innerHtml;
   }
@@ -316,8 +312,7 @@ class Utils {
     }
     RegExp exp = RegExp(
         r"((https?:www\.)|(https?:\/\/)|(www\.))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?");
-    RegExp v2exExp =
-    RegExp(r"((https?:www\.)|(https?:\/\/)|(www\.))v2ex.com");
+    RegExp v2exExp = RegExp(r"((https?:www\.)|(https?:\/\/)|(www\.))v2ex.com");
     RegExp linkExp = RegExp(r"^/go|/t|/member/");
     RegExp linkExp2 = RegExp(r"^<a(.*?)>(.*?)<\/a>$");
     bool isValidator = exp.hasMatch(aUrl);
@@ -362,18 +357,19 @@ class Utils {
       final Uri url = Uri.parse(aUrl);
       if (await canLaunchUrl(url)) {
         launchUrl(url);
-      }else if(linkExp2.hasMatch(aUrl)){
+      } else if (linkExp2.hasMatch(aUrl)) {
         print(aUrl);
-        try{
-          String tagA = parse(aUrl).body!.querySelector('a')!.attributes['href']!;
-          if (context.mounted){
+        try {
+          String tagA =
+              parse(aUrl).body!.querySelector('a')!.attributes['href']!;
+          if (context.mounted) {
             openHrefByWebview(tagA, context);
           }
-        }catch(err){
+        } catch (err) {
+          SmartDialog.showToast('openHref: $err');
           print(err);
         }
-      }
-      else {
+      } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -383,7 +379,7 @@ class Utils {
               action: SnackBarAction(
                 label: '复制',
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: aUrl));
+                  Clipboard.setData(ClipboardData(text: aUrl!));
                 },
               ),
             ),
@@ -393,36 +389,19 @@ class Utils {
       }
     }
   }
-}
 
-class MyChromeSafariBrowser extends ChromeSafariBrowser {
-  @override
-  void onOpened() {
-    // print("😊flutter ChromeSafari browser opened");
-  }
-
-  @override
-  void onLoadStart() {
-    // print('😊flutter flutter onloadStart');
-  }
-
-  // 加载完成
-  @override
-  void onCompletedInitialLoad(didLoadSuccessfully) async {
-    // print("😊flutter ChromeSafari browser initial load completed");
-    // final cookieManager = CookieManager.instance();
-    // List<Cookie> cookies = await cookieManager.getCookies(url: WebUri.uri(Uri.parse('https://www.v2ex.com/signin')));
-    // print('😊flutter: $cookies');
-  }
-
-  @override
-  void onInitialLoadDidRedirect(WebUri? url) {}
-
-  @override
-  void onClosed() async {
-    // final cookieManager = CookieManager.instance();
-    // List<Cookie> cookies = await cookieManager.getCookies(url: WebUri.uri(Uri.parse('https://www.v2ex.com')));
-    // print('😊flutter: $cookies');
-    // print("😊flutter ChromeSafari browser closed");
+  Future uploadImage() async {
+    final List<AssetEntity>? assets = await AssetPicker.pickAssets(
+      Get.context!,
+      pickerConfig: const AssetPickerConfig(maxAssets: 1),
+    );
+    if (assets != null && assets.isNotEmpty) {
+      SmartDialog.showLoading(msg: '上传中...');
+      AssetEntity? file = assets[0];
+      var res = await Upload.uploadImage('1', file);
+      SmartDialog.dismiss();
+      return res;
+    }
+    return ('no image selected');
   }
 }

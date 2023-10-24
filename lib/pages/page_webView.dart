@@ -14,16 +14,6 @@ class WebView extends StatefulWidget {
 class _WebViewState extends State<WebView> {
   InAppWebViewController? webViewController;
 
-  InAppWebViewSettings settings = InAppWebViewSettings(
-    // mediaPlaybackRequiresUserGesture: false,
-    // allowsInlineMediaPlayback: true,
-    // iframeAllow: "camera; microphone",
-    // iframeAllowFullscreen: true,
-    allowContentAccess: true,
-    userAgent: 'random',
-    javaScriptEnabled: true,
-  );
-
   PullToRefreshController? pullToRefreshController;
 
   String aUrl = "";
@@ -34,24 +24,6 @@ class _WebViewState extends State<WebView> {
   void initState() {
     super.initState();
     aUrl = Get.parameters['aUrl']!;
-
-    // pullToRefreshController = kIsWeb || ![TargetPlatform.iOS, TargetPlatform.android].contains(defaultTargetPlatform)
-    //     ? null
-    //     : PullToRefreshController(
-    //   settings: PullToRefreshSettings(
-    //     color: Theme.of(context).colorScheme.primary,
-    //   ),
-    //   onRefresh: () async {
-    //     if (defaultTargetPlatform == TargetPlatform.android) {
-    //       webViewController?.reload();
-    //     } else if (defaultTargetPlatform == TargetPlatform.iOS ||
-    //         defaultTargetPlatform == TargetPlatform.macOS) {
-    //       webViewController?.loadUrl(
-    //           urlRequest:
-    //           URLRequest(url: await webViewController?.getUrl()));
-    //     }
-    //   },
-    // );
   }
 
   @override
@@ -65,13 +37,10 @@ class _WebViewState extends State<WebView> {
       appBar: AppBar(
         title: Text(
           '登录 - Google账号',
-          style: Theme
-              .of(context)
-              .textTheme
-              .titleMedium,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         leading:
-        IconButton(onPressed: closePage, icon: const Icon(Icons.close)),
+            IconButton(onPressed: closePage, icon: const Icon(Icons.close)),
         actions: [
           IconButton(onPressed: reFresh, icon: const Icon(Icons.refresh)),
         ],
@@ -83,16 +52,32 @@ class _WebViewState extends State<WebView> {
               child: Stack(
                 children: [
                   InAppWebView(
-                    initialUrlRequest: URLRequest(url: WebUri(aUrl)),
+                    initialOptions: InAppWebViewGroupOptions(
+                        crossPlatform: InAppWebViewOptions(
+                      userAgent: 'random',
+                      javaScriptEnabled: true,
+                      useShouldOverrideUrlLoading: true,
+                      useOnLoadResource: true,
+                      cacheEnabled: true,
+                    )),
+                    initialUrlRequest: URLRequest(
+                      url: Uri.parse(aUrl),
+                      headers: {
+                        'refer':
+                            'https://www.v2ex.com//signin?next=/mission/daily',
+                        'User-Agent':
+                            'User-Agent: MOT-V9mm/00.62 UP.Browser/6.2.3.4.c.1.123 (GUI) MMP/2.0'
+                      },
+                    ),
                     pullToRefreshController: pullToRefreshController,
-                    initialSettings: settings,
+                    // initialSettings: settings,
                     onWebViewCreated: (controller) async {
                       webViewController = controller;
                       // print(await controller.getHtml());
                     },
                     // 加载url时触发
                     onLoadStart: (controller, url) async {
-                      URLRequest(url: WebUri(aUrl));
+                      URLRequest(url: Uri.parse(aUrl));
                     },
                     // 触发多次 页面内可能会有跳转
                     onLoadStop: (controller, url) async {
@@ -108,13 +93,13 @@ class _WebViewState extends State<WebView> {
                           strUrl == 'https://www.v2ex.com/2fa') {
                         // 使用cookieJar保存cookie
                         List<Cookie> cookies =
-                        await cookieManager.getCookies(url: url!);
+                            await cookieManager.getCookies(url: url!);
                         var res = await SetCookie.onSet(cookies, strUrl);
                         if (res && strUrl.contains('/2fa')) {
                           SmartDialog.show(
                             useSystem: true,
                             animationType:
-                            SmartAnimationType.centerFade_otherSlide,
+                                SmartAnimationType.centerFade_otherSlide,
                             builder: (BuildContext context) {
                               return AlertDialog(
                                 title: const Text('系统提示'),
